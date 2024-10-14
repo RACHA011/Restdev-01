@@ -13,13 +13,13 @@ import io.swagger.v3.oas.annotations.info.License;
         title = "Demo API",
         version = "Versions 1.0",
         contact = @Contact(
-            name = "rachadev", email = "rachadev032@gmail.com", url="http://rachadev.com"
+            name = "rachadev", email = "rachadev032@gmail.com", url="/"
         ),
         license = @License(
             name = "Apache 2.0",
             url = "http://www.apache.org/licenses/LICENSE-2.0"
         ),
-        termsOfService =  "http://rachadev.com",
+        termsOfService =  "/",
         description = "Spring boot restfull api demo by racha"
     )
 )
