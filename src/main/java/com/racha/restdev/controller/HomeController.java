@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController 
-@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
+@CrossOrigin(origins = "https://photovault011.onrender.com", maxAge = 3600)
 public class HomeController {
     @GetMapping("/api/v1")
     public String home() {
