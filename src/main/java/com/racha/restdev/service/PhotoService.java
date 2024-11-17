@@ -21,7 +21,7 @@ public class PhotoService {
     public Optional<Photo> findById(Long id) {
         return photoRepository.findById(id);
     }
-    
+
     public List<Photo> findByAlbum_id(long id) {
         return photoRepository.findByAlbum_id(id);
     }

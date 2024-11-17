@@ -15,7 +15,7 @@ public class PhotoViewDTO {
     private Long id;
     
     @NotBlank
-    @Schema(description = "Photo name", example = "TSelfie", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Photo name", example = "Selfie", requiredMode = RequiredMode.REQUIRED)
     private String name;
 
     @NotBlank

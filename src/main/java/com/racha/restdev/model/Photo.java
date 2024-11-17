@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,19 +24,16 @@ public class Photo {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    private String name;
+    private String name; 
 
-    private String description;
+    private String description; 
 
-    private String originalFilename;
+    private String originalFilename; 
 
-    private String fileName;
+    @Lob
+    private byte[] imageData; // Store the image data as binary data (BLOB)
 
     @ManyToOne
-    @JoinColumn(
-        name = "album_id",
-        referencedColumnName = "id", nullable = false
-    )
-    private Album album;
-
+    @JoinColumn(name = "album_id", referencedColumnName = "id", nullable = false)
+    private Album album; 
 }

@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.racha.restdev.model.Account;
 import com.racha.restdev.model.Album;
@@ -125,7 +126,7 @@ public class AlbumController {
             for (Photo photo : photoService.findByAlbum_id(album.getId())) {
                 String link = "/albums/" + album.getId() + "/photos/" + photo.getId() + "/download-photo";
                 photos.add(new PhotoDTO(photo.getId(), photo.getName(),
-                        photo.getDescription(), photo.getFileName(), link));
+                        photo.getDescription(), photo.getOriginalFilename(), link));
             }
             albums.add(new AlbumViewDTO(album.getId(), album.getName(), album.getDescription(), photos));
         }
@@ -160,7 +161,7 @@ public class AlbumController {
         for (Photo photo : photoService.findByAlbum_id(album.getId())) {
             String link = "/albums/" + album.getId() + "/photos/" + photo.getId() + "/download-photo";
             photos.add(new PhotoDTO(photo.getId(), photo.getName(),
-                    photo.getDescription(), photo.getFileName(), link));
+                    photo.getDescription(), photo.getOriginalFilename(), link));
         }
         AlbumViewDTO albumViewDTO = new AlbumViewDTO(album.getId(), album.getName(), album.getDescription(), photos);
 
@@ -198,7 +199,7 @@ public class AlbumController {
         for (Photo photo : photoService.findByAlbum_id(album.getId())) {
             String link = "/albums/" + album.getId() + "/photos/" + photo.getId() + "/download-photo";
             photos.add(new PhotoDTO(photo.getId(), photo.getName(),
-                    photo.getDescription(), photo.getFileName(), link));
+                    photo.getDescription(), photo.getOriginalFilename(), link));
         }
         AlbumViewDTO albumViewDTO = new AlbumViewDTO(album.getId(), album.getName(), album.getDescription(), photos);
 
@@ -230,8 +231,6 @@ public class AlbumController {
             }
 
             for (Photo photo : photoService.findByAlbum_id(album.getId())) {
-                AppUtil.deletePhotoFromPath(photo.getFileName(), PHOTO_FOLDER_NAME, album_id);
-                AppUtil.deletePhotoFromPath(photo.getFileName(), THUMBNAIL_FOLDER_NAME, album_id);
 
                 photoService.delete(photo);
             }
@@ -245,7 +244,7 @@ public class AlbumController {
 
     @PostMapping(value = "/albums/{album_id}/upload-photos", consumes = { "multipart/form-data" })
     @ApiResponse(responseCode = "400", description = "Please check the payload or token")
-    @ApiResponse(responseCode = "201", description = "photo uploaded successfully")
+    @ApiResponse(responseCode = "201", description = "Photo uploaded successfully")
     @Operation(summary = "Upload photo in Album")
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<List<HashMap<String, List<?>>>> photos(
@@ -254,58 +253,41 @@ public class AlbumController {
 
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
-        Account account = optionalAccount.get();
+        Account account = optionalAccount.orElseThrow(() -> new RuntimeException("Account not found"));
 
-        // check if the user is the owner of the album
-        Optional<Album> optionalAlbum = albumService.findById(album_id);
-        Album album;
-        if (optionalAlbum.isPresent()) {
-            album = optionalAlbum.get();
-            if (!account.getId().equals(album.getAccount().getId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        // Check if the user is the owner of the album
+        Album album = albumService.findById(album_id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Album not found"));
+
+        if (!account.getId().equals(album.getAccount().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
 
         List<String> fileNamesWithError = new ArrayList<>();
         List<PhotoViewDTO> fileNamesWithSuccess = new ArrayList<>();
 
-        Arrays.asList(files).stream().forEach(file -> {
+        Arrays.stream(files).forEach(file -> {
             String contentType = file.getContentType();
-            if (contentType.equals("image/jpg")
-                    || contentType.equals("image/jpeg")
-                    || contentType.equals("image/png")) {
-                int length = 10;
-                boolean useLetters = true;
-                boolean useNumbers = true;
+            if (contentType != null &&
+                    (contentType.equals("image/jpg") || contentType.equals("image/jpeg")
+                            || contentType.equals("image/png"))) {
 
                 try {
-                    String fileName = file.getOriginalFilename();
-                    String generetedString = RandomStringUtils.random(length, useLetters, useNumbers);
-                    String finalPhotoName = generetedString + fileName;
-                    String absoluteFileLocation = AppUtil.getPhotoUploadPath(finalPhotoName, PHOTO_FOLDER_NAME,
-                            album_id);
-
-                    Path path = Paths.get(absoluteFileLocation);
-
-                    Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+                    // Read file as byte array
+                    byte[] imageData = file.getBytes();
 
                     Photo photo = new Photo();
-                    photo.setName(fileName);
-                    photo.setFileName(finalPhotoName);
-                    photo.setOriginalFilename(fileName);
+                    photo.setName("");
+                    photo.setOriginalFilename(file.getOriginalFilename());
+                    photo.setImageData(imageData);
                     photo.setAlbum(album);
+
+                    // Save photo in database
                     photoService.save(photo);
 
                     PhotoViewDTO photoViewDTO = new PhotoViewDTO(photo.getId(), photo.getName(),
                             photo.getDescription());
                     fileNamesWithSuccess.add(photoViewDTO);
-
-                    BufferedImage thumbnail = AppUtil.getThumbnail(file, THUMBNAIL_WIDTH);
-                    File thumbnailLocation = new File(
-                            AppUtil.getPhotoUploadPath(finalPhotoName, THUMBNAIL_FOLDER_NAME, album_id));
-                    ImageIO.write(thumbnail, file.getContentType().split("/")[1], thumbnailLocation);
 
                 } catch (Exception e) {
                     log.debug(AlbumError.UPLOAD_PHOTO_ERROR.toString() + ": " + e.getMessage());
@@ -327,8 +309,10 @@ public class AlbumController {
     }
 
     @DeleteMapping(value = "/albums/{album_id}/photos/{photos_id}/delete")
-    @Operation(summary = "delete")
-    @ApiResponse(responseCode = "202", description = "Photo Delete")
+    @Operation(summary = "Delete Photo")
+    @ApiResponse(responseCode = "202", description = "Photo Deleted Successfully")
+    @ApiResponse(responseCode = "403", description = "Forbidden: Unauthorized access")
+    @ApiResponse(responseCode = "400", description = "Bad Request: Invalid photo or album")
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<String> deletePhoto(@PathVariable("album_id") Long album_id,
             @PathVariable("photos_id") Long photo_id, Authentication authentication) {
@@ -355,8 +339,6 @@ public class AlbumController {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
                 }
 
-                AppUtil.deletePhotoFromPath(photo.getFileName(), PHOTO_FOLDER_NAME, album_id);
-                AppUtil.deletePhotoFromPath(photo.getFileName(), THUMBNAIL_FOLDER_NAME, album_id);
                 photoService.delete(photo);
 
                 return ResponseEntity.status(HttpStatus.ACCEPTED).body(null);
@@ -371,7 +353,6 @@ public class AlbumController {
     }
 
     @PutMapping(value = "/albums/{album_id}/photos/{photos_id}/update", consumes = "application/json", produces = "application/json")
-    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Update photo", description = "Update the photo with the given ID from the specified album")
     @ApiResponse(responseCode = "400", description = "please upload a valid photo")
     @ApiResponse(responseCode = "204", description = "Photo Updated")
@@ -428,7 +409,28 @@ public class AlbumController {
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<?> downloadPhoto(@PathVariable("album_id") Long albumId,
             @PathVariable("photos_id") Long photoId, Authentication authentication) {
-        return downloadFile(albumId, photoId, PHOTO_FOLDER_NAME, authentication);
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        // check if the user is the owner of the album
+        Optional<Album> optionalAlbum = albumService.findById(albumId);
+        Album album;
+        if (optionalAlbum.isPresent()) {
+            album = optionalAlbum.get();
+            if (account.getId() != album.getAccount().getId()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        Photo photo = photoService.findById(photoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG) // Set appropriate content type
+                .body(photo.getImageData());
     }
 
     @GetMapping("/albums/{album_id}/photos/{photos_id}/download-thumbnails")
@@ -439,7 +441,28 @@ public class AlbumController {
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<?> downloadThumbnail(@PathVariable("album_id") Long albumId,
             @PathVariable("photos_id") Long photoId, Authentication authentication) {
-        return downloadFile(albumId, photoId, THUMBNAIL_FOLDER_NAME, authentication);
+        String email = authentication.getName();
+        Optional<Account> optionalAccount = accountService.findByEmail(email);
+        Account account = optionalAccount.get();
+
+        // check if the user is the owner of the album
+        Optional<Album> optionalAlbum = albumService.findById(albumId);
+        Album album;
+        if (optionalAlbum.isPresent()) {
+            album = optionalAlbum.get();
+            if (account.getId() != album.getAccount().getId()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        Photo photo = photoService.findById(photoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG) // Set appropriate content type
+                .body(photo.getImageData());
     }
 
     public ResponseEntity<?> downloadFile(Long albumId, Long photoId, String folberName,
@@ -468,7 +491,7 @@ public class AlbumController {
             }
             Resource resource = null;
             try {
-                resource = AppUtil.getFileResource(albumId, folberName, photo.getFileName());
+                resource = AppUtil.getFileResource(albumId, folberName, photo.getOriginalFilename());
                 if (resource == null) {
                     return new ResponseEntity<>("File Not Found", HttpStatus.NOT_FOUND);
                 }
@@ -477,7 +500,8 @@ public class AlbumController {
             }
 
             String contentType = "application/octet-stream";
-            String headerValue = "attachment; filename=\"" + photo.getOriginalFilename() + "\"";
+            String headerValue = "attachment; filename=\"" + photo.getOriginalFilename()
+                    + "\"";
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
