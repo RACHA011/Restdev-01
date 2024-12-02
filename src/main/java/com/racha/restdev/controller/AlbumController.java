@@ -52,7 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@CrossOrigin(origins = "https://photovault011.onrender.com", maxAge = 3600)
+@CrossOrigin(origins = "https://photo-vault.vercel.app", maxAge = 3600)
 @Tag(name = "Album Controller", description = "Controller for Album and photo management")
 @Slf4j
 public class AlbumController {
