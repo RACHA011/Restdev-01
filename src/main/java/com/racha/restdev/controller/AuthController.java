@@ -112,7 +112,7 @@ public class AuthController {
     @ApiResponse(responseCode = "403", description = "Token error")
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<AccountViewDTO> updateAuth(@Valid @RequestBody AuthorityDTO authorityDTO,
-            @PathVariable Long user_id) {
+            @PathVariable String user_id) {
         Optional<Account> optionalAccount = accountService.findById(user_id);
         if (optionalAccount.isPresent()) {
             Account account = optionalAccount.get();

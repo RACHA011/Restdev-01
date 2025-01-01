@@ -31,7 +31,21 @@ public class AccountService implements UserDetailsService {
         if (account.getAuthorities() == null) {
             account.setAuthorities(Authority.USER.toString());
         }
+        if (account.getId() == null || account.getId().isEmpty()) {
+            // Check if the email already exists
+            if (accountRepository.findByEmailIgnoreCase(account.getEmail()).isPresent()) {
+                throw new RuntimeException("Email already exists");
+            }
+            Optional<Account> maxIdOpt = findMaxId();
+            String newidString = maxIdOpt.map(Account::getId).orElse("0");
+            Long newId = Long.parseLong(newidString) + 1;
+            account.setId(String.valueOf(newId));
+        }
         return accountRepository.save(account);
+    }
+
+    public Optional<Account> findMaxId() {
+        return accountRepository.findTopByOrderByIdDesc();
     }
 
     public List<Account> findall() {
@@ -42,11 +56,11 @@ public class AccountService implements UserDetailsService {
         return accountRepository.findByEmail(email);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(String id) {
         accountRepository.deleteById(id);
     }
 
-    public Optional<Account> findById(Long id) {
+    public Optional<Account> findById(String id) {
         return accountRepository.findById(id);
     }
 

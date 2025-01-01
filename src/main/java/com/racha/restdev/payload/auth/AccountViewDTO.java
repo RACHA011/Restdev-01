@@ -11,10 +11,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AccountViewDTO {
 
-    private Long id;
+    private String id;
 
     private String email;
 
     private String authorities;
 }
-

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class PhotoDTO {
-    private Long id;
+    private String id;
 
     private String name;
 

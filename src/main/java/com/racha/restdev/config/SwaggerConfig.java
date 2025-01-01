@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
 
 @Configuration
 @OpenAPIDefinition(
@@ -15,11 +14,6 @@ import io.swagger.v3.oas.annotations.info.License;
         contact = @Contact(
             name = "rachadev", email = "rachadev032@gmail.com", url="/"
         ),
-        license = @License(
-            name = "Apache 2.0",
-            url = "http://www.apache.org/licenses/LICENSE-2.0"
-        ),
-        termsOfService =  "/",
         description = "Spring boot restfull api demo by racha"
     )
 )

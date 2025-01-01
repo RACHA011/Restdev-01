@@ -15,14 +15,24 @@ public class PhotoService {
     private PhotoRepository photoRepository;
 
     public Photo save(Photo photo) {
+        if (photo.getId() == null || photo.getId().isEmpty()) {
+            Optional<Photo> maxIdOpt = findMaxId();
+            String newidString = maxIdOpt.map(Photo::getId).orElse("0");
+            Long newId = Long.parseLong(newidString) + 1;
+            photo.setId(String.valueOf(newId));
+        }
         return photoRepository.save(photo);
     }
 
-    public Optional<Photo> findById(Long id) {
+    public Optional<Photo> findMaxId() {
+        return photoRepository.findTopByOrderByIdDesc();
+    }
+
+    public Optional<Photo> findById(String id) {
         return photoRepository.findById(id);
     }
 
-    public List<Photo> findByAlbum_id(long id) {
+    public List<Photo> findByAlbum_id(String id) {
         return photoRepository.findByAlbum_id(id);
     }
 

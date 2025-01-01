@@ -131,7 +131,7 @@ public class AlbumController {
     @ApiResponse(responseCode = "404", description = "Album not found")
     @Operation(summary = "Album")
     @SecurityRequirement(name = "rachadev-demo-api")
-    public ResponseEntity<AlbumViewDTO> albumsById(@PathVariable("album_id") Long album_id,
+    public ResponseEntity<AlbumViewDTO> albumsById(@PathVariable("album_id") String album_id,
             Authentication authentication) {
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
@@ -166,7 +166,7 @@ public class AlbumController {
     @Operation(summary = "Album update")
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<AlbumViewDTO> albumUpdate(@Valid @RequestBody AlbumPayLoadDTO albumPayLoadDTO,
-            @PathVariable("album_id") Long album_id,
+            @PathVariable("album_id") String album_id,
             Authentication authentication) {
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
@@ -202,7 +202,7 @@ public class AlbumController {
     @Operation(summary = "Album Delete")
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<String> albumdelete(
-            @PathVariable("album_id") Long album_id,
+            @PathVariable("album_id") String album_id,
             Authentication authentication) {
 
         try {
@@ -240,7 +240,7 @@ public class AlbumController {
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<List<HashMap<String, List<?>>>> photos(
             @RequestPart(required = true) MultipartFile[] files,
-            @PathVariable("album_id") Long album_id, Authentication authentication) {
+            @PathVariable("album_id") String album_id, Authentication authentication) {
 
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
@@ -305,8 +305,8 @@ public class AlbumController {
     @ApiResponse(responseCode = "403", description = "Forbidden: Unauthorized access")
     @ApiResponse(responseCode = "400", description = "Bad Request: Invalid photo or album")
     @SecurityRequirement(name = "rachadev-demo-api")
-    public ResponseEntity<String> deletePhoto(@PathVariable("album_id") Long album_id,
-            @PathVariable("photos_id") Long photo_id, Authentication authentication) {
+    public ResponseEntity<String> deletePhoto(@PathVariable("album_id") String album_id,
+            @PathVariable("photos_id") String photo_id, Authentication authentication) {
         try {
             String email = authentication.getName();
             Optional<Account> optionalAccount = accountService.findByEmail(email);
@@ -349,8 +349,8 @@ public class AlbumController {
     @ApiResponse(responseCode = "204", description = "Photo Updated")
     @SecurityRequirement(name = "rachadev-demo-api")
     public ResponseEntity<PhotoViewDTO> updatePhoto(@Valid @RequestBody PhotoPayloadDTO PhotoPayloadDTO,
-            @PathVariable("album_id") Long albumId,
-            @PathVariable("photos_id") Long photoId,
+            @PathVariable("album_id") String albumId,
+            @PathVariable("photos_id") String photoId,
             Authentication authentication) {
 
         try {
@@ -398,8 +398,8 @@ public class AlbumController {
     @ApiResponse(responseCode = "400", description = "Invalid request parameters")
     @ApiResponse(responseCode = "404", description = "Photo or album not found")
     @SecurityRequirement(name = "rachadev-demo-api")
-    public ResponseEntity<?> downloadPhoto(@PathVariable("album_id") Long albumId,
-            @PathVariable("photos_id") Long photoId, Authentication authentication) {
+    public ResponseEntity<?> downloadPhoto(@PathVariable("album_id") String albumId,
+            @PathVariable("photos_id") String photoId, Authentication authentication) {
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
         Account account = optionalAccount.get();
@@ -430,8 +430,8 @@ public class AlbumController {
     @ApiResponse(responseCode = "400", description = "Invalid request parameters")
     @ApiResponse(responseCode = "404", description = "Photo or album not found")
     @SecurityRequirement(name = "rachadev-demo-api")
-    public ResponseEntity<?> downloadThumbnail(@PathVariable("album_id") Long albumId,
-            @PathVariable("photos_id") Long photoId, Authentication authentication) {
+    public ResponseEntity<?> downloadThumbnail(@PathVariable("album_id") String albumId,
+            @PathVariable("photos_id") String photoId, Authentication authentication) {
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);
         Account account = optionalAccount.get();
@@ -456,7 +456,7 @@ public class AlbumController {
                 .body(photo.getImageData());
     }
 
-    public ResponseEntity<?> downloadFile(Long albumId, Long photoId, String folberName,
+    public ResponseEntity<?> downloadFile(String albumId, String photoId, String folberName,
             Authentication authentication) {
         String email = authentication.getName();
         Optional<Account> optionalAccount = accountService.findByEmail(email);

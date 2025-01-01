@@ -14,7 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AlbumViewDTO {
 
-    private Long id;
+    private String id;
 
     @NotBlank
     @Schema(description = "Album name", example = "Travel", requiredMode = RequiredMode.REQUIRED)
@@ -23,6 +23,6 @@ public class AlbumViewDTO {
     @NotBlank
     @Schema(description = "Album description", example = "Description", requiredMode = RequiredMode.REQUIRED)
     private String description;
-    
+
     private List<PhotoDTO> photos;
 }

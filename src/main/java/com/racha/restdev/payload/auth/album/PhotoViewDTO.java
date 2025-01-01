@@ -12,8 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PhotoViewDTO {
 
-    private Long id;
-    
+    private String id;
+
     @NotBlank
     @Schema(description = "Photo name", example = "Selfie", requiredMode = RequiredMode.REQUIRED)
     private String name;

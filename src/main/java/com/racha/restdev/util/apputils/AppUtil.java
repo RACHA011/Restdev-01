@@ -16,7 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class AppUtil {
     private static final String PATH = "src/main/resources/static/uploads/";
-    public static String getPhotoUploadPath(String fileName, String folderName, Long albumId) throws IOException {
+
+    public static String getPhotoUploadPath(String fileName, String folderName, String albumId) throws IOException {
         String path = PATH + albumId + "\\" + folderName;
         Files.createDirectories(Paths.get(path));
         return new File(path).getAbsolutePath() + "\\" + fileName;
@@ -25,12 +26,12 @@ public class AppUtil {
     public static BufferedImage getThumbnail(MultipartFile originalFile, Integer width) throws IOException {
         BufferedImage thumgImg = null;
         BufferedImage img = ImageIO.read(originalFile.getInputStream());
-        thumgImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, width,Scalr.OP_ANTIALIAS);
+        thumgImg = Scalr.resize(img, Scalr.Method.AUTOMATIC, width, Scalr.OP_ANTIALIAS);
 
         return thumgImg;
-    } 
+    }
 
-    public static Resource getFileResource(Long albumId, String folderName, String filename) throws IOException {
+    public static Resource getFileResource(String albumId, String folderName, String filename) throws IOException {
         String location = PATH + albumId + "/" + folderName + "/" + filename;
         Path path = Paths.get(location);
         if (Files.exists(path)) {
@@ -39,13 +40,13 @@ public class AppUtil {
         return null;
     }
 
-    public static Boolean deletePhotoFromPath(String fileName, String folderName, Long albumId) throws IOException {
+    public static Boolean deletePhotoFromPath(String fileName, String folderName, String albumId) throws IOException {
 
         try {
-            File file = new File( PATH + albumId + "\\" + folderName + "\\" + fileName );// file tobe deleted
+            File file = new File(PATH + albumId + "\\" + folderName + "\\" + fileName);// file tobe deleted
             if (file.delete()) {
                 return true;
-            }else {
+            } else {
                 return false;
             }
         } catch (Exception e) {
@@ -53,5 +54,5 @@ public class AppUtil {
             return false;
         }
     }
-    
+
 }
