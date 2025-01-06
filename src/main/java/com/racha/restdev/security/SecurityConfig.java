@@ -8,7 +8,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-// import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -43,15 +42,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // @Bean
-    // public InMemoryUserDetailsManager users() {
-    // return new InMemoryUserDetailsManager(
-    // User.withUsername("racha")
-    // .password("{noop}password")
-    // .authorities("read")
-    // .build());
-    // }
-
     @Bean
     public AuthenticationManager authManager(UserDetailsService userDetailsService) {
         var authProvider = new DaoAuthenticationProvider();
@@ -73,8 +63,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/db-console/**"))
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(autho -> autho
                         .requestMatchers("/api/v1/auth/token").permitAll()
                         .requestMatchers("/api/v1/auth/profile/**").authenticated()
@@ -83,15 +72,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/user").hasAuthority("SCOPE_ADMIN")
                         .requestMatchers("/api/v1/auth/users/{user_id}/update-Authorities").hasAuthority("SCOPE_ADMIN")
                         .requestMatchers("/api/v1").permitAll()
-                        .requestMatchers("/db-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll());
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated());
         http
                 .oauth2ResourceServer(oAuth -> oAuth.jwt(Customizer.withDefaults()))
-
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.csrf(csrf -> csrf.disable());
-        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
+
+        // http.headers(headers -> headers.frameOptions(frameOptions ->
+        // frameOptions.disable()));
         return http.build();
     }
 
