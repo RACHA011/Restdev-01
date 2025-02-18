@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/app  # Mount the current directory to the container
     environment:
-      - SPRING_DATA_MONGODB_URI=photovault:photovault032@photovault.6b5p5.mongodb.net/photovault?retryWrites=true &w=majority
+      - SPRING_DATA_MONGODB_URI=
       - SPRING_DATA_MONGODB_DATABASE=photovault
       - SPRING_DATA_MONGODB_SSL_ENABLED=true
     # restart: always
